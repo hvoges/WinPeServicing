@@ -64,7 +64,14 @@
   { Return 'Please test if the ADK is installed' }
   $WinPeOCsPath = $AdkPath + "\$Architecture\WinPE_OCs"
   $DismPath = $ADKRootPath + '\Deployment Tools' + "\$Architecture\DISM"
-  $dism = get-command $DismPath\dism.exe
+  If ( test-path -Path $DismPath\dism.exe )
+  {
+    $dism = get-command -Name $DismPath\dism.exe 
+  }
+  Else 
+  {
+    $dism = get-command -Name dism.exe 
+  }
 
   if (-not ( Test-Path -path $MountFolder)) 
   {
@@ -100,14 +107,15 @@
       Copy-Item -Path $folder.FullName -Destination "$MountFolder\Program Files" -Recurse
     }   
     # Copy Powershell-Scripts
-    Copy-Item -Path $ScriptFolder\* -Destination "$MountFolder\Scripts" -Recurse
-    If ( test-path -Path ( Join-Path -path $ServiceFolder -Childpath "startnet.cmd" ))
+    mkdir -Path "$MountFolder\Scripts\"
+    Copy-Item -Path $ScriptFolder\* -Destination "$MountFolder\Scripts\" -Recurse
+    If ( test-path -Path ( Join-Path -path $ServiceFolder -Childpath "startnetTemplate.cmd" ))
     {
-      Copy-Item -Path "$ServiceFolder\StartNet.cmd" -Destination ( Join-Path -Path $MountFolder -childpath "\Windows\System32\Startnet.cmd" )
+      Copy-Item -Path "$ServiceFolder\StartNetTemplate.cmd" -Destination ( Join-Path -Path $MountFolder -childpath "\Windows\System32\Startnet.cmd" ) -Force
     }
-    If ( test-path -Path ( Join-Path -path $ServiceFolder -Childpath "Winpeshl.ini" ))
+    If ( test-path -Path ( Join-Path -path $ServiceFolder -Childpath "Winpeshl_template.ini" ))
     {
-      Copy-Item -Path "$ServiceFolder\Winpeshl.ini" -Destination ( Join-Path -Path $Mountfolder -childpath "\Windows\System32\Winpeshl.ini" )
+      Copy-Item -Path "$ServiceFolder\Winpeshl_template.ini" -Destination ( Join-Path -Path $Mountfolder -childpath "\Windows\System32\Winpeshl.ini" ) -Force
     }
     
     & $dism /image:$MountFolder /Set-InputLocale:$Language 
